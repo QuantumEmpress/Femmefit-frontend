@@ -141,6 +141,7 @@ const Settings = () => {
 
   const handleLogout = () => {
     logout();
+    console.log('User logged out');
   }
 
   return (

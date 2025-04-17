@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useContext } from 'react'
 import React from 'react';
 import axios from 'axios'
+import { set } from 'react-hook-form';
 
 export const AuthContext = createContext();
 
@@ -78,6 +79,7 @@ export const AuthProvider = ({ children }) => {
     setIsLoggedIn(false);
     setUserEmail(null);
     setUserData(null);
+    setLoading(false);
     sessionStorage.removeItem('user');
   };
 

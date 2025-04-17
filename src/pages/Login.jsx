@@ -23,8 +23,9 @@ function Login() {
         { email: formData.email, password: formData.password },
       );
       console.log("Login successful:", response.data);
-      navigate("/dashboard");
       await login(formData.email);
+      navigate("/dashboard");
+      
     } catch (error) {
       console.error("Login failed:", error.response?.data || error.message);
       setError(error.response?.data?.message || "Login failed. Please try again.");
