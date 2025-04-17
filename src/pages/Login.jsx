@@ -1,9 +1,9 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { AuthContext } from "../App";
 import { motion, AnimatePresence } from "framer-motion";
 import { Dumbbell, Eye, EyeOff, Sparkles, Heart, Star } from "lucide-react";
+import { AuthContext } from "../components/AuthProvider";
 
 function Login() {
   const navigate = useNavigate();
@@ -21,17 +21,12 @@ function Login() {
       const response = await axios.post(
         "http://localhost:8080/api/auth/login",
         { email: formData.email, password: formData.password },
-        { headers: { "Content-Type": "application/json" } }
       );
-
-      if (response.data.token && response.data.user) {
-        login(response.data.token, response.data.user);
-        navigate("/dashboard");
-      } else {
-        setError("Invalid credentials. Please try again.");
-      }
+      console.log("Login successful:", response.data);
+      navigate("/dashboard");
+      await login(formData.email);
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login failed:", error.response?.data || error.message);
       setError(error.response?.data?.message || "Login failed. Please try again.");
     }
   };

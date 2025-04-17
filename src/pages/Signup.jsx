@@ -69,7 +69,7 @@ function Signup() {
   ));
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800 p-4 relative overflow-hidden">
+    <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden bg-gradient-to-br from-pink-900 via-purple-900 to-pink-800">
       {particles}
 
       <motion.div
@@ -89,8 +89,8 @@ function Signup() {
             transition={{ duration: 0.6, type: "spring" }}
             className="relative"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full blur-lg opacity-50"></div>
-            <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 p-5 rounded-full mb-4 shadow-xl">
+            <div className="absolute inset-0 rounded-full opacity-50 bg-gradient-to-r from-pink-400 to-purple-500 blur-lg"></div>
+            <div className="relative p-5 mb-4 rounded-full shadow-xl bg-gradient-to-r from-pink-500 to-purple-600">
               <Dumbbell size={40} className="text-white" />
             </div>
           </motion.div>
@@ -100,10 +100,10 @@ function Signup() {
             transition={{ delay: 0.2 }}
             className="text-center"
           >
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent">
+            <h2 className="text-4xl font-bold text-transparent bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text">
               FemmeFit
             </h2>
-            <p className="text-sm text-gray-600 mt-3 font-light tracking-wide">
+            <p className="mt-3 text-sm font-light tracking-wide text-gray-600">
               Transform • Empower • Inspire
             </p>
           </motion.div>
@@ -118,12 +118,12 @@ function Signup() {
               activeField === "username" ? "z-10" : ""
             }`}
           >
-            <label className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-1 block">
+            <label className="block mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
               Username
             </label>
             <input
               type="text"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all bg-white/50 backdrop-blur-sm"
+              className="w-full px-4 py-3 transition-all border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white/50 backdrop-blur-sm"
               value={formData.username}
               onChange={(e) =>
                 setFormData({ ...formData, username: e.target.value })
@@ -150,12 +150,12 @@ function Signup() {
               activeField === "email" ? "z-10" : ""
             }`}
           >
-            <label className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-1 block">
+            <label className="block mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
               Email
             </label>
             <input
               type="email"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all bg-white/50 backdrop-blur-sm"
+              className="w-full px-4 py-3 transition-all border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white/50 backdrop-blur-sm"
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
@@ -182,13 +182,13 @@ function Signup() {
               activeField === "password" ? "z-10" : ""
             }`}
           >
-            <label className="text-xs uppercase tracking-wider text-gray-500 font-medium mb-1 block">
+            <label className="block mb-1 text-xs font-medium tracking-wider text-gray-500 uppercase">
               Password
             </label>
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all bg-white/50 backdrop-blur-sm pr-12"
+                className="w-full px-4 py-3 pr-12 transition-all border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 bg-white/50 backdrop-blur-sm"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
@@ -201,7 +201,7 @@ function Signup() {
                 whileTap={{ scale: 0.9 }}
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-pink-500 transition-colors"
+                className="absolute text-gray-400 transition-colors -translate-y-1/2 right-4 top-1/2 hover:text-pink-500"
               >
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </motion.button>
@@ -222,10 +222,10 @@ function Signup() {
           <button
             type="button" 
             onClick={handleSubmit}
-            className="w-full relative group"
+            className="relative w-full group"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl blur-lg opacity-75 group-hover:opacity-100 transition-opacity"></div>
-            <div className="relative bg-gradient-to-r from-pink-500 to-purple-600 text-white py-4 rounded-2xl font-medium tracking-wide shadow-xl">
+            <div className="absolute inset-0 transition-opacity opacity-75 bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl blur-lg group-hover:opacity-100"></div>
+            <div className="relative py-4 font-medium tracking-wide text-white shadow-xl bg-gradient-to-r from-pink-500 to-purple-600 rounded-2xl">
               Begin Your Transformation
             </div>
           </button>
@@ -233,7 +233,7 @@ function Signup() {
 
         {/* Login Link */}
         <motion.p
-          className="text-center mt-8 text-sm text-gray-600"
+          className="mt-8 text-sm text-center text-gray-600"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
@@ -241,7 +241,7 @@ function Signup() {
           Already on your journey?{" "}
           <button
             onClick={() => navigate("/login")}
-            className="font-medium bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+            className="font-medium text-transparent transition-opacity bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text hover:opacity-80"
           >
             Log in
           </button>

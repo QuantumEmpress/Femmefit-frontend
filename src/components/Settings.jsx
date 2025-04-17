@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { User, Bell, Lock, Palette, HelpCircle, LogOut } from 'lucide-react';
+import { AuthContext } from './AuthProvider';
 
 const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile');
@@ -136,6 +137,12 @@ const Settings = () => {
     }
   ];
 
+  const { logout } = useContext(AuthContext);
+
+  const handleLogout = () => {
+    logout();
+  }
+
   return (
     <div className="p-6 bg-gray-900 min-h-[calc(100vh-4rem)]">
       <h1 className="mb-6 text-2xl font-semibold text-white">Settings</h1>
@@ -160,6 +167,7 @@ const Settings = () => {
             ))}
 
             <button
+              onClick={handleLogout}
               className="flex items-center w-full px-4 py-3 space-x-3 text-red-400 transition-colors rounded-lg hover:bg-red-500/10"
             >
               <LogOut className="w-5 h-5" />
