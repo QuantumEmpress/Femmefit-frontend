@@ -150,7 +150,7 @@ function Login() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute text-gray-400 transition-colors -translate-y-1/2 right-4 top-1/2 hover:text-pink-500"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
               </button>
             </div>
           </div>
