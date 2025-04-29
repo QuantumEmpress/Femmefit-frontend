@@ -7,12 +7,12 @@ import {
   Outlet
 } from "react-router-dom";
 import SidePanel from "./components/SidePanel";
-import Header from "./components/Header";
+import Header from "./components/header";
 import Dashboard from "./pages/Dashboard";
-import Goals from "./components/Goals";
+// import Goals from "./components/goals";
 import Workout from "./components/Workout";
 import Settings from "./components/settings";
-import Community from "./components/Community";
+// import Community from "./components/Community";
 import Schedule from "./components/Schedule";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -53,9 +53,8 @@ function App() {
           <Route element={<ProtectedLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/workouts" element={<Workout />} />
-            <Route path="/goals" element={<Goals />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/community" element={<Community />} />
+            {/* <Route path="/community" element={<Community />} /> */}
             <Route path="/Schedule" element={<Schedule />} />
           </Route>
         </Routes>

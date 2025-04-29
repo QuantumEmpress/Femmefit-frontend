@@ -9,9 +9,8 @@ const SidePanel = () => {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/dashboard' },
     { icon: Activity, label: 'Workouts', path: '/workouts' },
-    { icon: Target, label: 'Goals', path: '/goals' },
+
     { icon: Calendar, label: 'Schedule', path: '/schedule' },
-    { icon: Users, label: 'Community', path: '/community' },
     { icon: Settings, label: 'Settings', path: '/settings' }
   ];
 

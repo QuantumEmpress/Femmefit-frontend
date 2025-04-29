@@ -28,7 +28,7 @@ const SearchBar = () => {
                 ${isFocused ? 'text-pink-400' : 'text-gray-300'}`} 
               />
               {isFocused && (
-                <Sparkles className="h-3 w-3 text-pink-300 absolute -top-1 -right-1 animate-pulse" />
+                <Sparkles className="absolute w-3 h-3 text-pink-300 -top-1 -right-1 animate-pulse" />
               )}
             </div>
 
@@ -40,7 +40,7 @@ const SearchBar = () => {
               onBlur={() => setIsFocused(false)}
               className="w-full px-4 py-3.5 bg-transparent text-lg text-gray-100 placeholder-gray-300
                 focus:outline-none transition-all duration-300"
-              placeholder="Search workouts, goals, or friends..."
+              placeholder="Search workouts..."
             />
 
             {searchValue && (
@@ -50,8 +50,7 @@ const SearchBar = () => {
                   className="p-1.5 rounded-full hover:bg-gray-600 transition-colors duration-200
                     group/clear flex items-center justify-center"
                 >
-                  <X className="h-5 w-5 text-gray-300 group-hover/clear:text-gray-100
-                    transition-colors duration-200" />
+                  <X className="w-5 h-5 text-gray-300 transition-colors duration-200 group-hover/clear:text-gray-100" />
                 </button>
               </div>
             )}
