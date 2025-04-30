@@ -60,7 +60,6 @@ const Dashboard = () => {
           `http://localhost:8080/api/progress/history/${userEmail}`
         );
         
-        // Filter completed workouts
         const completedWorkouts = progressResponse.data.filter(
           (progress) => progress.completed
         );
