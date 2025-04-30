@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import {
   Activity,
   Clock,
@@ -13,18 +13,22 @@ import {
   Check,
   X,
   Sparkles,
-  Heart
-} from 'lucide-react';
-import axios from 'axios';
-import { useAuth } from './AuthProvider';
+  Heart,
+} from "lucide-react";
+import axios from "axios";
+import { useAuth } from "./AuthProvider";
 
-const WorkoutCard = ({ workout, onClick, onDelete }) => {
+const WorkoutCard = ({ workout, onClick, onDelete, isComplete }) => {
   const { title, duration, calories, workoutIntensity, imagePath } = workout;
 
   return (
-    <div className="relative overflow-hidden transition-all duration-300 transform border bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-2xl border-gray-700/50 hover:shadow-lg hover:shadow-pink-500/10 group">
+    <div
+      className={`relative overflow-hidden transition-all duration-300 transform border bg-gradient-to-br from-gray-800/90 to-gray-900/90 rounded-2xl hover:shadow-lg hover:shadow-pink-500/10 group ${
+        isComplete ? "border-[1px] border-green-500" : "border-gray-700/50"
+      }`}
+    >
       <div className="absolute inset-0 transition-opacity duration-500 opacity-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10 group-hover:opacity-100" />
-      
+
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -35,13 +39,13 @@ const WorkoutCard = ({ workout, onClick, onDelete }) => {
         <Trash2 className="w-4 h-4 text-white" />
       </button>
 
-      <div 
+      <div
         className="h-48 transition-transform duration-500 bg-center bg-cover group-hover:scale-105"
         style={{ backgroundImage: `url(${imagePath})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent" />
       </div>
-      
+
       <div className="relative z-10 p-6">
         <h3 className="mb-4 text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
           {title}
@@ -59,7 +63,7 @@ const WorkoutCard = ({ workout, onClick, onDelete }) => {
             <BarChart className="w-5 h-5 mr-2 text-pink-400" />
             <span className="text-sm text-gray-200">{workoutIntensity}</span>
           </div>
-          <button 
+          <button
             onClick={onClick}
             className="flex items-center justify-center p-2 transition-all duration-300 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 group-hover:scale-105"
           >
@@ -72,7 +76,7 @@ const WorkoutCard = ({ workout, onClick, onDelete }) => {
   );
 };
 
-const WorkoutDetail = ({ workout, onBack }) => {
+const WorkoutDetail = ({ workout, onBack, isComplete }) => {
   const [isWorkoutStarted, setIsWorkoutStarted] = useState(false);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
@@ -129,6 +133,18 @@ const WorkoutDetail = ({ workout, onBack }) => {
       setIsWorkoutStarted(true);
     } else {
       await startWorkout();
+    }
+  };
+
+  const clearProgress = async (progressId) => {
+    try {
+      if (progressId) {
+        console.log(progressId)
+      }
+      console.log("No Id");
+      
+    } catch (error) {
+      console.error("Error clearing workout progress:", error);
     }
   };
 
@@ -285,11 +301,15 @@ const WorkoutDetail = ({ workout, onBack }) => {
             </div>
             {!isWorkoutStarted ? (
               <button
-                onClick={startOrContinueWorkout}
+                onClick={isComplete ? () => clearProgress(workoutProgressId) : startOrContinueWorkout}
                 className="flex items-center px-6 py-3 text-white transition-all duration-300 rounded-full shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 hover:shadow-pink-500/25"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
-                {hasIncompleteWorkout ? "Continue Workout" : "Start Workout"}
+                {isComplete
+                  ? "Clear Workout"
+                  : hasIncompleteWorkout
+                  ? "Continue Workout"
+                  : "Start Workout"}
               </button>
             ) : (
               <div className="flex gap-2">
@@ -431,7 +451,7 @@ const WorkoutDetail = ({ workout, onBack }) => {
                   <div
                     key={exercise.id}
                     className={`p-4 border-[1px] rounded-lg transition-all duration-300 ${
-                      completedExercises.includes(exercise.id)
+                      completedExercises.includes(exercise.id) || isComplete
                         ? "bg-green-600/20 border-green-600/50"
                         : "bg-gray-700/20 border-gray-700/50"
                     }`}
@@ -440,7 +460,8 @@ const WorkoutDetail = ({ workout, onBack }) => {
                       <div className="flex items-center">
                         <div
                           className={`flex items-center justify-center w-8 h-8 mr-4 rounded-full ${
-                            completedExercises.includes(exercise.id)
+                            completedExercises.includes(exercise.id) ||
+                            isComplete
                               ? "bg-gradient-to-r from-green-500 to-emerald-500"
                               : "bg-gradient-to-r from-pink-500 to-purple-500"
                           }`}
@@ -456,7 +477,7 @@ const WorkoutDetail = ({ workout, onBack }) => {
                     <div className="grid grid-cols-3 gap-2 pl-12">
                       <div
                         className={`p-2 rounded transition-all duration-300 ${
-                          completedExercises.includes(exercise.id)
+                          completedExercises.includes(exercise.id) || isComplete
                             ? "bg-green-500/20"
                             : "bg-gray-600/50"
                         }`}
@@ -466,7 +487,7 @@ const WorkoutDetail = ({ workout, onBack }) => {
                       </div>
                       <div
                         className={`p-2 rounded transition-all duration-300 ${
-                          completedExercises.includes(exercise.id)
+                          completedExercises.includes(exercise.id) || isComplete
                             ? "bg-green-500/20"
                             : "bg-gray-600/50"
                         }`}
@@ -476,7 +497,7 @@ const WorkoutDetail = ({ workout, onBack }) => {
                       </div>
                       <div
                         className={`p-2 rounded transition-all duration-300 ${
-                          completedExercises.includes(exercise.id)
+                          completedExercises.includes(exercise.id) || isComplete
                             ? "bg-green-500/20"
                             : "bg-gray-600/50"
                         }`}
@@ -506,6 +527,29 @@ const Workout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { userEmail } = useAuth();
 
+  const [completedWorkouts, setCompletedWorkouts] = useState([]);
+
+  useEffect(() => {
+    const fetchCompletedWorkouts = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/progress/history/${userEmail}`
+        );
+        const completed = response.data
+          .filter((progress) => progress.completed)
+          .map((progress) => progress.workoutId);
+        setCompletedWorkouts(completed);
+      } catch (error) {
+        console.error("Error fetching completed workouts:", error);
+      }
+    };
+
+    if (userEmail) {
+      fetchCompletedWorkouts();
+      fetchUserWorkouts();
+    }
+  }, [userEmail]);
+
   const handleWorkoutSelect = (workout) => {
     setSelectedWorkouts((prev) => {
       if (prev.some((w) => w.id === workout.id)) {
@@ -522,7 +566,6 @@ const Workout = () => {
         `http://localhost:8080/api/workout/user/${userEmail}`
       );
       const data = await response.data;
-      console.log("Fetched user workouts:", data);
       setUserWorkouts(data);
     } catch (error) {
       console.error("Error fetching user workouts:", error);
@@ -537,7 +580,6 @@ const Workout = () => {
         `http://localhost:8080/api/workout/unselected/${userEmail}`
       );
       const data = await response.data;
-      console.log("Fetched workouts:", data);
       setWorkouts(data);
     } catch (error) {
       console.error("Error fetching workouts:", error);
@@ -605,13 +647,12 @@ const Workout = () => {
     }
   }, [userEmail]);
 
-  console.log("Fetched workouts:", workouts);
-
   if (selectedWorkout) {
     return (
       <WorkoutDetail
         workout={selectedWorkout}
         onBack={() => setSelectedWorkout(null)}
+        isComplete={completedWorkouts.includes(selectedWorkout.id)}
       />
     );
   }
@@ -746,6 +787,7 @@ const Workout = () => {
               workout={workout}
               onClick={() => setSelectedWorkout(workout)}
               onDelete={() => removeWorkout(workout)}
+              isComplete={completedWorkouts.includes(workout.id)}
             />
           ))}
         </div>

@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Activity, Flame, Target, Clock, TrendingUp } from "lucide-react";
 import { useAuth } from "../components/AuthProvider";
+import axios from "axios";
 
-const StatCard = ({ icon: Icon, title, value, trend }) => (
+const StatCard = ({ icon: Icon, title, value, trend, loading }) => (
   <div className="relative p-8 overflow-hidden transition-all duration-300 bg-gray-800 border border-gray-700 rounded-2xl hover:scale-105 group">
     <div className="absolute top-0 right-0 w-40 h-40 transition-transform transform bg-gradient-to-br from-pink-500/20 to-purple-500/20 blur-3xl rotate-12 group-hover:rotate-45"></div>
     <div className="absolute bottom-0 left-0 w-32 h-32 transition-transform transform bg-gradient-to-tr from-purple-500/20 to-pink-500/20 blur-2xl -rotate-12 group-hover:rotate-45"></div>
@@ -16,20 +17,95 @@ const StatCard = ({ icon: Icon, title, value, trend }) => (
         </div>
       </div>
       <div className="space-y-3">
-        <p className="text-4xl font-bold tracking-tight text-white transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:to-purple-400 group-hover:bg-clip-text group-hover:text-transparent">
-          {value}
-        </p>
-        <div className="flex items-center text-sm font-medium text-green-400">
-          <TrendingUp className="w-4 h-4 mr-1.5" />
-          <span>{trend}</span>
-        </div>
+        {loading ? (
+          <div className="h-10 bg-gray-700 rounded animate-pulse"></div>
+        ) : (
+          <p className="text-4xl font-bold tracking-tight text-white transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-pink-400 group-hover:to-purple-400 group-hover:bg-clip-text group-hover:text-transparent">
+            {value}
+          </p>
+        )}
+        {!loading && (
+          <div className="flex items-center text-sm font-medium text-green-400">
+            <TrendingUp className="w-4 h-4 mr-1.5" />
+            <span>{trend}</span>
+          </div>
+        )}
       </div>
     </div>
   </div>
 );
 
 const Dashboard = () => {
-  const { userData } = useAuth();
+  const { userData, userEmail } = useAuth();
+  const [stats, setStats] = useState({
+    totalWorkouts: 0,
+    completedWorkouts: 0,
+    totalCalories: 0,
+    totalMinutes: 0,
+    weeklyTrend: '+0%'
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWorkoutStats = async () => {
+      try {
+        setLoading(true);
+        
+        const workoutsResponse = await axios.get(
+          `http://localhost:8080/api/workout/user/${userEmail}`
+        );
+        const totalWorkouts = workoutsResponse.data.length;
+        
+        const progressResponse = await axios.get(
+          `http://localhost:8080/api/progress/history/${userEmail}`
+        );
+        
+        // Filter completed workouts
+        const completedWorkouts = progressResponse.data.filter(
+          (progress) => progress.completed
+        );
+        
+        const workoutMap = {};
+        workoutsResponse.data.forEach(workout => {
+          workoutMap[workout.id] = workout;
+        });
+        
+        const totalCompleted = completedWorkouts.length;
+        const totalCalories = completedWorkouts.reduce(
+          (sum, progress) => {
+            const workout = workoutMap[progress.workoutId];
+            return sum + (workout?.calories || 0);
+          },
+          0
+        );
+        const totalMinutes = completedWorkouts.reduce(
+          (sum, progress) => {
+            const workout = workoutMap[progress.workoutId];
+            return sum + (workout?.duration || 0);
+          },
+          0
+        );
+        
+        const weeklyTrend = totalCompleted > 0 ? `+${Math.floor(totalCompleted * 10)}%` : '+0%';
+        
+        setStats({
+          totalWorkouts,
+          completedWorkouts: totalCompleted,
+          totalCalories,
+          totalMinutes,
+          weeklyTrend
+        });
+      } catch (error) {
+        console.error("Error fetching workout stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    if (userEmail) {
+      fetchWorkoutStats();
+    }
+  }, [userEmail]);
 
   return (
     <div className="p-6 bg-gray-900 min-h-[calc(100vh-4rem)]">
@@ -57,24 +133,25 @@ const Dashboard = () => {
           <StatCard
             icon={Activity}
             title="Active Minutes"
-            value="145 mins"
-            trend="+12% from last week"
+            value={`${stats.totalMinutes} mins`}
+            trend={stats.weeklyTrend}
+            loading={loading}
           />
           <StatCard
             icon={Flame}
             title="Calories Burned"
-            value="2,450 kcal"
-            trend="+15% from last week"
+            value={`${stats.totalCalories} kcal`}
+            trend={stats.weeklyTrend}
+            loading={loading}
           />
           <StatCard
             icon={Target}
             title="Workouts Completed"
-            value="12 workouts"
-            trend="+3 this week"
+            value={`${stats.completedWorkouts}/${stats.totalWorkouts}`}
+            trend={stats.weeklyTrend}
+            loading={loading}
           />
         </div>
-
-     
       </div>
     </div>
   );
