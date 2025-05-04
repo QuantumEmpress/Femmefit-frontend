@@ -13,7 +13,9 @@ const StatCard = ({ icon: Icon, title, value, trend, loading }) => (
           <div className="flex items-center justify-center transition-colors border w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500/10 to-purple-500/10 border-pink-500/20 group-hover:border-pink-500/40">
             <Icon className="text-pink-400 transition-colors w-7 h-7 group-hover:text-pink-300" />
           </div>
-          <h3 className="text-xl font-medium text-gray-400 transition-colors group-hover:text-gray-300">{title}</h3>
+          <h3 className="text-xl font-medium text-gray-400 transition-colors group-hover:text-gray-300">
+            {title}
+          </h3>
         </div>
       </div>
       <div className="space-y-3">
@@ -42,7 +44,7 @@ const Dashboard = () => {
     completedWorkouts: 0,
     totalCalories: 0,
     totalMinutes: 0,
-    weeklyTrend: '+0%'
+    weeklyTrend: "+0%",
   });
   const [loading, setLoading] = useState(true);
 
@@ -50,49 +52,33 @@ const Dashboard = () => {
     const fetchWorkoutStats = async () => {
       try {
         setLoading(true);
-        
+
+        // Get total workouts
         const workoutsResponse = await axios.get(
           `http://localhost:8080/api/workout/user/${userEmail}`
         );
         const totalWorkouts = workoutsResponse.data.length;
-        
-        const progressResponse = await axios.get(
-          `http://localhost:8080/api/progress/history/${userEmail}`
+
+        // Get completed workouts count
+        const completedCountResponse = await axios.get(
+          `http://localhost:8080/api/progress/completed/count/${userEmail}`
         );
-        
-        const completedWorkouts = progressResponse.data.filter(
-          (progress) => progress.completed
+        const totalCompleted = completedCountResponse.data;
+
+        // Get persistent stats
+        const statsResponse = await axios.get(
+          `http://localhost:8080/api/user-stats/${userEmail}`
         );
-        
-        const workoutMap = {};
-        workoutsResponse.data.forEach(workout => {
-          workoutMap[workout.id] = workout;
-        });
-        
-        const totalCompleted = completedWorkouts.length;
-        const totalCalories = completedWorkouts.reduce(
-          (sum, progress) => {
-            const workout = workoutMap[progress.workoutId];
-            return sum + (workout?.calories || 0);
-          },
-          0
-        );
-        const totalMinutes = completedWorkouts.reduce(
-          (sum, progress) => {
-            const workout = workoutMap[progress.workoutId];
-            return sum + (workout?.duration || 0);
-          },
-          0
-        );
-        
-        const weeklyTrend = totalCompleted > 0 ? `+${Math.floor(totalCompleted * 10)}%` : '+0%';
-        
+
+        const weeklyTrend =
+          totalCompleted > 0 ? `+${Math.floor(totalCompleted * 10)}%` : "+0%";
+
         setStats({
           totalWorkouts,
           completedWorkouts: totalCompleted,
-          totalCalories,
-          totalMinutes,
-          weeklyTrend
+          totalCalories: statsResponse.data.totalCalories,
+          totalMinutes: statsResponse.data.totalMinutes,
+          weeklyTrend,
         });
       } catch (error) {
         console.error("Error fetching workout stats:", error);
@@ -100,7 +86,7 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-  
+
     if (userEmail) {
       fetchWorkoutStats();
     }
@@ -114,15 +100,17 @@ const Dashboard = () => {
             <h1 className="text-5xl font-bold text-transparent bg-gradient-to-r from-white to-gray-400 bg-clip-text">
               Welcome back, {userData?.username || "User"} 👋
             </h1>
-            <p className="text-xl text-gray-400">Your fitness journey at a glance</p>
+            <p className="text-xl text-gray-400">
+              Your fitness journey at a glance
+            </p>
           </div>
           <div className="flex items-center px-6 py-3 bg-gray-800 border border-gray-700 rounded-full shadow-lg shadow-black/20">
             <Clock className="w-6 h-6 mr-3 text-pink-400" />
             <span className="text-lg text-white">
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric'
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
               })}
             </span>
           </div>
@@ -146,7 +134,7 @@ const Dashboard = () => {
           <StatCard
             icon={Target}
             title="Workouts Completed"
-            value={`${stats.completedWorkouts}/${stats.totalWorkouts}`}
+            value={`${stats.completedWorkouts}`}
             trend={stats.weeklyTrend}
             loading={loading}
           />

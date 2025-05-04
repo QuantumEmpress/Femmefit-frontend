@@ -17,9 +17,40 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "./AuthProvider";
+import SearchBar from "./SearchBar";
 
-const WorkoutCard = ({ workout, onClick, onDelete, isComplete }) => {
+const WorkoutCard = ({
+  workout,
+  onClick,
+  onDelete,
+  isComplete,
+  searchTerm,
+}) => {
   const { title, duration, calories, workoutIntensity, imagePath } = workout;
+
+  const highlightSearchMatch = (text) => {
+    if (!searchTerm || searchTerm.trim() === "") return text;
+
+    const regex = new RegExp(`(${searchTerm})`, "gi");
+    return text.split(regex).map((part, index) =>
+      part.toLowerCase() === searchTerm.toLowerCase() ? (
+        <span
+          key={index}
+          style={{
+            backgroundColor: "#c77bbf8b",
+            color: "white",
+            padding: "0 3px",
+            borderRadius: "3px",
+            fontWeight: "bold",
+          }}
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  };
 
   return (
     <div
@@ -48,7 +79,7 @@ const WorkoutCard = ({ workout, onClick, onDelete, isComplete }) => {
 
       <div className="relative z-10 p-6">
         <h3 className="mb-4 text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300">
-          {title}
+          {highlightSearchMatch(title)}
         </h3>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="flex items-center p-2 border rounded-lg bg-gray-800/50 backdrop-blur-sm border-gray-700/50">
@@ -94,39 +125,52 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
   const currentExercise = workout?.exercises?.[currentExerciseIndex];
   const totalExercises = workout?.exercises?.length || 0;
 
-  useEffect(() => {
-    const checkIncompleteWorkout = async () => {
-      try {
-        const { data } = await axios.get(
-          `http://localhost:8080/api/progress/incomplete/${userEmail}/${workout.id}`
+  const checkIncompleteWorkout = async () => {
+    try {
+      const { data } = await axios.get(
+        `http://localhost:8080/api/progress/incomplete/${userEmail}/${workout.id}`
+      );
+      if (data) {
+        console.log("Incomplete workout found:", data);
+        setHasIncompleteWorkout(true);
+        setWorkoutProgressId(data.id);
+
+        const completed = data.exerciseProgresses
+          .filter((ep) => ep.completed)
+          .map((ep) => ep.exerciseId);
+        setCompletedExercises(completed);
+
+        const incompleteExerciseIndex = data.exerciseProgresses.findIndex(
+          (ep) => !ep.completed
         );
-        if (data) {
-          setHasIncompleteWorkout(true);
-          setWorkoutProgressId(data.id);
 
-          const completed = data.exerciseProgresses
-            .filter((ep) => ep.completed)
-            .map((ep) => ep.exerciseId);
-          setCompletedExercises(completed);
-
-          const incompleteExerciseIndex = data.exerciseProgresses.findIndex(
-            (ep) => !ep.completed
-          );
-
-          if (incompleteExerciseIndex !== -1) {
-            const incompleteExercise =
-              data.exerciseProgresses[incompleteExerciseIndex];
-            setCurrentExerciseIndex(incompleteExerciseIndex);
-            setCurrentSet(incompleteExercise.completedSets + 1);
-          }
+        if (incompleteExerciseIndex !== -1) {
+          const incompleteExercise =
+            data.exerciseProgresses[incompleteExerciseIndex];
+          setCurrentExerciseIndex(incompleteExerciseIndex);
+          setCurrentSet(incompleteExercise.completedSets + 1);
         }
-      } catch (error) {
-        console.error("Error checking incomplete workout:", error);
       }
-    };
+    } catch (error) {
+      console.error("Error checking incomplete workout:", error);
+    }
+  };
 
+  useEffect(() => {
     checkIncompleteWorkout();
   }, [userEmail, workout.id]);
+
+  const getCompletedWorkoutProgressId = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/progress/completed/${userEmail}/${workout.id}`
+      );
+      return response.data.id;
+    } catch (error) {
+      console.error("Error fetching completed workout progress:", error);
+      return null;
+    }
+  };
 
   const startOrContinueWorkout = async () => {
     if (hasIncompleteWorkout) {
@@ -136,13 +180,26 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
     }
   };
 
-  const clearProgress = async (progressId) => {
+  const clearProgress = async () => {
     try {
+      const progressId =
+        workoutProgressId || (await getCompletedWorkoutProgressId());
+
       if (progressId) {
-        console.log(progressId)
+        await axios.delete(`http://localhost:8080/api/progress/${progressId}`);
       }
-      console.log("No Id");
-      
+
+      setIsWorkoutStarted(false);
+      setCurrentExerciseIndex(0);
+      setCurrentSet(1);
+      setIsPaused(false);
+      setTimeLeft(0);
+      setIsResting(false);
+      setWorkoutComplete(false);
+      setCompletedExercises([]);
+      setHasIncompleteWorkout(false);
+      setWorkoutProgressId(null);
+      onBack();
     } catch (error) {
       console.error("Error clearing workout progress:", error);
     }
@@ -301,7 +358,7 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
             </div>
             {!isWorkoutStarted ? (
               <button
-                onClick={isComplete ? () => clearProgress(workoutProgressId) : startOrContinueWorkout}
+                onClick={isComplete ? clearProgress : startOrContinueWorkout}
                 className="flex items-center px-6 py-3 text-white transition-all duration-300 rounded-full shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 hover:shadow-pink-500/25"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
@@ -313,17 +370,19 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
               </button>
             ) : (
               <div className="flex gap-2">
-                <button
-                  onClick={togglePause}
-                  className="flex items-center px-4 py-2 text-white transition-all duration-300 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
-                >
-                  {isPaused ? (
-                    <Play className="w-5 h-5 mr-2" />
-                  ) : (
-                    <Pause className="w-5 h-5 mr-2" />
-                  )}
-                  {isPaused ? "Resume" : "Pause"}
-                </button>
+                {isResting && (
+                  <button
+                    onClick={togglePause}
+                    className="flex items-center px-4 py-2 text-white transition-all duration-300 rounded-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                  >
+                    {isPaused ? (
+                      <Play className="w-5 h-5 mr-2" />
+                    ) : (
+                      <Pause className="w-5 h-5 mr-2" />
+                    )}
+                    {isPaused ? "Resume" : "Pause"}
+                  </button>
+                )}
                 <button
                   onClick={nextStep}
                   className="flex items-center px-4 py-2 transition-all duration-300 rounded-lg bg-gray-700/50 backdrop-blur-sm hover:bg-gray-600"
@@ -525,9 +584,19 @@ const Workout = () => {
   const [selectedWorkouts, setSelectedWorkouts] = useState([]);
   const [userWorkouts, setUserWorkouts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { userEmail } = useAuth();
+  const { userEmail, searchTerm, setSearchTerm } = useAuth();
 
   const [completedWorkouts, setCompletedWorkouts] = useState([]);
+
+  useEffect(() => {
+    return () => {
+      setSearchTerm("");
+    };
+  }, []);
+
+  const filteredWorkouts = userWorkouts.filter((workout) =>
+    workout.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     const fetchCompletedWorkouts = async () => {
@@ -539,6 +608,7 @@ const Workout = () => {
           .filter((progress) => progress.completed)
           .map((progress) => progress.workoutId);
         setCompletedWorkouts(completed);
+        console.log("Completed", completed);
       } catch (error) {
         console.error("Error fetching completed workouts:", error);
       }
@@ -661,17 +731,19 @@ const Workout = () => {
     <div className="p-6 bg-gradient-to-b from-gray-900 via-pink-900/10 to-gray-900 min-h-[calc(100vh-4rem)]">
       <div className="relative mb-8">
         <div className="absolute rounded-lg -inset-1 bg-gradient-to-r from-pink-500 to-purple-500 blur opacity-20"></div>
-        <div className="relative flex items-center justify-between p-4 border border-gray-800 bg-gray-900/80 backdrop-blur-sm rounded-xl">
-          <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
-            My Workouts
-          </h1>
-          <button
-            onClick={() => setIsDialogOpen(true)}
-            className="flex items-center px-6 py-3 text-white transition-all duration-300 rounded-full shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 hover:shadow-pink-500/25"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Add Workout
-          </button>
+        <div className="relative p-4 border border-gray-800 bg-gray-900/80 backdrop-blur-sm rounded-xl">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+              My Workouts
+            </h1>
+            <button
+              onClick={() => setIsDialogOpen(true)}
+              className="flex items-center px-6 py-3 text-white transition-all duration-300 rounded-full shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 hover:shadow-pink-500/25"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Add Workout
+            </button>
+          </div>
         </div>
       </div>
 
@@ -694,7 +766,7 @@ const Workout = () => {
             </div>
 
             <div className="mb-6 max-h-[60vh] space-y-4 overflow-y-auto">
-              {workouts?.length > 0 ? (
+              {workouts?.length > 0 &&
                 workouts.map((workout) => (
                   <div
                     key={workout.id}
@@ -744,12 +816,7 @@ const Workout = () => {
                       </div>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="flex items-center justify-center h-32 text-gray-400">
-                  No workouts available
-                </div>
-              )}
+                ))}
             </div>
 
             <div className="flex justify-end gap-3">
@@ -779,34 +846,37 @@ const Workout = () => {
         <div className="flex items-center justify-center h-64">
           <div className="w-12 h-12 border-4 border-pink-500 rounded-full animate-spin border-t-transparent"></div>
         </div>
-      ) : userWorkouts.length > 0 ? (
+      ) : filteredWorkouts.length > 0 ? (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {userWorkouts.map((workout) => (
+          {filteredWorkouts.map((workout) => (
             <WorkoutCard
               key={workout.id}
               workout={workout}
               onClick={() => setSelectedWorkout(workout)}
               onDelete={() => removeWorkout(workout)}
               isComplete={completedWorkouts.includes(workout.id)}
+              searchTerm={searchTerm}
             />
           ))}
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="max-w-md p-8 border bg-gray-800/50 backdrop-blur-sm rounded-xl border-gray-700/50">
+          <div className="min-w-md p-8 border bg-gray-800/50 backdrop-blur-sm rounded-xl border-gray-700/50">
             <Activity className="w-12 h-12 mx-auto mb-4 text-pink-400" />
             <h3 className="mb-2 text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
-              No Workouts Added Yet
+              {searchTerm ? "No workouts found" : "No Workouts Added Yet"}
             </h3>
             <p className="mb-6 text-gray-400">
-              Get started by adding some workouts to your collection
+              {searchTerm
+                ? "Try a different search term"
+                : "Get started by adding some workouts to your collection"}
             </p>
             <button
               onClick={() => setIsDialogOpen(true)}
               className="flex items-center justify-center px-6 py-3 mx-auto text-white transition-all duration-300 rounded-full shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 hover:shadow-pink-500/25"
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              Add Your First Workout
+              {searchTerm ? "Browse all workouts" : "Add Your First Workout"}
             </button>
           </div>
         </div>

@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Initialize auth state from sessionStorage
   useEffect(() => {
@@ -89,6 +90,8 @@ export const AuthProvider = ({ children }) => {
     userData,
     isLoggedIn,
     userEmail,
+    searchTerm,
+    setSearchTerm,
     login,
     logout,
     loading
