@@ -180,15 +180,15 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
     }
   };
 
-  const clearProgress = async () => {
+  const clearProgress = async (removeFromCompleted = false) => {
     try {
       const progressId =
         workoutProgressId || (await getCompletedWorkoutProgressId());
-
+  
       if (progressId) {
         await axios.delete(`http://localhost:8080/api/progress/${progressId}`);
       }
-
+  
       setIsWorkoutStarted(false);
       setCurrentExerciseIndex(0);
       setCurrentSet(1);
@@ -199,7 +199,7 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
       setCompletedExercises([]);
       setHasIncompleteWorkout(false);
       setWorkoutProgressId(null);
-      onBack();
+      onBack(false, removeFromCompleted);
     } catch (error) {
       console.error("Error clearing workout progress:", error);
     }
@@ -330,6 +330,12 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
 
   if (!currentExercise) return null;
 
+  const handleFinishWorkout = () => {
+    setIsWorkoutStarted(false);
+    setWorkoutComplete(false);
+    onBack(true);
+  };
+
   return (
     <div className="min-h-screen text-white bg-gradient-to-b from-gray-900 via-pink-900/10 to-gray-900">
       <div className="relative h-[40vh] w-full">
@@ -358,7 +364,7 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
             </div>
             {!isWorkoutStarted ? (
               <button
-                onClick={isComplete ? clearProgress : startOrContinueWorkout}
+                onClick={isComplete ? () => clearProgress(true) : startOrContinueWorkout}
                 className="flex items-center px-6 py-3 text-white transition-all duration-300 rounded-full shadow-lg bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 hover:shadow-pink-500/25"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
@@ -428,7 +434,7 @@ const WorkoutDetail = ({ workout, onBack, isComplete }) => {
                     </h2>
                     <Check className="w-16 h-16 mx-auto text-green-500" />
                     <button
-                      onClick={() => setIsWorkoutStarted(false)}
+                      onClick={handleFinishWorkout}
                       className="px-6 py-3 mt-6 text-white transition-all duration-300 rounded-full shadow-lg bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 hover:shadow-green-500/25"
                     >
                       <Sparkles className="inline-block w-5 h-5 mr-2" />
@@ -721,8 +727,17 @@ const Workout = () => {
     return (
       <WorkoutDetail
         workout={selectedWorkout}
-        onBack={() => setSelectedWorkout(null)}
-        isComplete={completedWorkouts.includes(selectedWorkout.id)}
+        onBack={(justCompleted = false, removeFromCompleted = false) => {
+          if (justCompleted) {
+            setCompletedWorkouts((prev) => [...prev, selectedWorkout.id]);
+          } else if (removeFromCompleted) {
+            setCompletedWorkouts((prev) =>
+              prev.filter((id) => id !== selectedWorkout.id)
+            );
+          }
+          setSelectedWorkout(null);
+        }}
+        isComplete={completedWorkouts.includes(selectedWorkout?.id)}
       />
     );
   }

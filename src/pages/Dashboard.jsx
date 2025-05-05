@@ -53,19 +53,16 @@ const Dashboard = () => {
       try {
         setLoading(true);
 
-        // Get total workouts
         const workoutsResponse = await axios.get(
           `http://localhost:8080/api/workout/user/${userEmail}`
         );
         const totalWorkouts = workoutsResponse.data.length;
 
-        // Get completed workouts count
         const completedCountResponse = await axios.get(
           `http://localhost:8080/api/progress/completed/count/${userEmail}`
         );
         const totalCompleted = completedCountResponse.data;
 
-        // Get persistent stats
         const statsResponse = await axios.get(
           `http://localhost:8080/api/user-stats/${userEmail}`
         );
