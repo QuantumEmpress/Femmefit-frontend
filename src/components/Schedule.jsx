@@ -46,6 +46,34 @@ const Schedule = () => {
     }
   }, [userEmail, currentDate]);
 
+
+  useEffect(() => {
+    if (scheduledWorkouts.length === 0) return;
+  
+    const checkTime = () => {
+      const now = new Date();
+      const currentTime = `${now.getHours()}:${now.getMinutes()}`;
+      const today = now.toISOString().split('T')[0];
+  
+      scheduledWorkouts.forEach(workout => {
+        const [hours, minutes] = workout.time.split(':');
+        const workoutTime = `${hours}:${minutes}`;
+        
+        if (workoutTime === currentTime && workout.date === today) {
+          alert(`⏰ Time for your ${formatTime(workout.time)} ${workout.workoutTitle}!`);
+        }
+      });
+    };
+  
+    // Check immediately
+    checkTime();
+    
+    // Then check every 30 seconds (in case you set a time very soon)
+    const interval = setInterval(checkTime, 30000);
+    
+    return () => clearInterval(interval);
+  }, [scheduledWorkouts]);
+
   useEffect(() => {
     if (showAddModal) {
       const fetchAvailableWorkouts = async () => {
